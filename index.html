@@ -185,50 +185,51 @@
 
   /* ── data-integrity medallion chip (source feeds → surface roll-up) ─ */
   :root{ --bronze:#C2823C; --bronze-lit:#E0A860; --bronze-dim:#7a5626; }
-  .dq{position:fixed;top:14px;right:16px;z-index:50;font-family:"IBM Plex Mono",monospace}
-  .dq-chip{display:inline-flex;align-items:center;gap:7px;cursor:default;
-    background:linear-gradient(180deg,rgba(18,31,43,.92),rgba(14,28,38,.92));
-    border:1px solid var(--line);border-radius:999px;padding:5px 11px 5px 8px;
-    box-shadow:0 6px 20px rgba(0,0,0,.35);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
-  .dq-dot{width:10px;height:10px;border-radius:50%;flex:none;
+  .dq{position:fixed;top:14px;right:16px;z-index:50;width:252px;
+    font-family:"IBM Plex Mono",monospace;
+    background:linear-gradient(180deg,rgba(18,31,43,.94),rgba(13,26,36,.94));
+    border:1px solid var(--line);border-radius:11px;padding:9px 12px 8px;
+    box-shadow:0 8px 24px rgba(0,0,0,.42);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px)}
+  .dq-h{font-size:8.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted-2);margin-bottom:7px}
+  .dq-row{display:flex;align-items:center;gap:9px;padding:3px 0}
+  .dq-row .dot{width:9px;height:9px;border-radius:50%;flex:none;order:3;
     background:radial-gradient(circle at 35% 30%, var(--bronze-lit), var(--bronze) 60%, #6f4a1f);
     box-shadow:0 0 0 2px rgba(194,130,60,.16)}
-  .dq-tier{font-size:12px;font-weight:600;color:var(--bronze);letter-spacing:.02em}
-  .dq-q{font-size:9.5px;color:var(--muted-2);letter-spacing:.01em}
-  .dq-car{font-size:9px;color:var(--muted-2);margin-left:1px}
-  .dq-panel{position:absolute;top:calc(100% + 6px);right:0;width:256px;
-    background:linear-gradient(180deg,#101f2b,#0c1822);border:1px solid var(--line);
-    border-radius:11px;padding:11px 13px;box-shadow:0 20px 60px rgba(0,0,0,.55);
-    opacity:0;transform:translateY(-4px);pointer-events:none;transition:opacity .15s,transform .15s}
-  .dq:hover .dq-panel,.dq:focus-within .dq-panel{opacity:1;transform:none;pointer-events:auto}
-  .dq-h{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted-2);margin-bottom:8px}
-  .dq-line{display:flex;align-items:center;gap:8px;font-size:11px;padding:3px 0}
-  .dq-line .lab{color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .dq-line .med{display:inline-flex;align-items:center;gap:5px;color:var(--bronze);font-weight:600;flex:none}
-  .dq-line .med i{width:7px;height:7px;border-radius:50%;background:var(--bronze);flex:none}
-  .dq-sub{font-size:9px;color:var(--muted-2);padding:1px 0 5px;line-height:1.5}
-  .dq-rule{border-top:1px solid var(--line-soft);margin-top:6px;padding-top:7px;font-size:9.5px;color:var(--muted-2);line-height:1.55}
-  .dq-rule b{color:var(--muted);font-weight:600}
-  @media(max-width:760px){ .dq-panel{width:222px} .dq-q{display:none} }
+  .dq-row.sfc .dot{background:radial-gradient(circle at 35% 30%, #8b9fac, var(--muted-2) 60%, #384955);
+    box-shadow:0 0 0 2px rgba(89,114,133,.16)}
+  .dq-row .lab{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;order:1}
+  .dq-row .lab b{font-size:10.5px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dq-row .lab small{font-size:8px;color:var(--muted-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dq-row .tier{flex:none;order:2;text-align:right;display:flex;flex-direction:column;gap:1px;
+    font-size:10px;font-weight:600;color:var(--bronze);letter-spacing:.02em}
+  .dq-row .tier em{font-style:normal;font-size:7.5px;font-weight:400;color:var(--muted-2)}
+  .dq-row.sfc .tier{color:var(--muted-2)}
+  .dq-foot{margin-top:7px;padding-top:6px;border-top:1px solid var(--line-soft);
+    font-size:7.5px;color:var(--muted-2);line-height:1.55}
+  .dq-foot b{color:var(--muted);font-weight:600}
+  @media(max-width:760px){ .dq{width:214px} }
 </style>
 </head>
 <body>
-<!-- data-integrity medallion: source feeds roll up into the surface rating; surface tier = min(feeds) -->
-<div class="dq" tabindex="0" role="button" aria-label="Data integrity: Bronze, feed-capped, surface cert pending">
-  <div class="dq-chip">
-    <span class="dq-dot" aria-hidden="true"></span>
-    <span class="dq-tier">Bronze</span>
-    <span class="dq-q">feed-capped · own cert pending</span>
-    <span class="dq-car" aria-hidden="true">▾</span>
+<!-- data-integrity medallion (always-visible 3-row banner): surface tier = min(own cert, feeds). SURFACE own cert is below T0 (0 cells); feeds T1 Bronze -->
+<div class="dq" role="group" aria-label="Data integrity medallion. Surface scanner_squeeze_results: uncertified, pre-T0, 0 cells, ceiling Bronze. Feed bars-daily public.bars: T1 Bronze. Feed gex-compute public.options_gex_levels: T1 Bronze. Surface tier = min of own cert and feeds.">
+  <div class="dq-h">Data integrity · medallion</div>
+  <div class="dq-row sfc">
+    <span class="lab"><b>SURFACE</b><small>scanner_squeeze_results</small></span>
+    <span class="tier">pre-T0 · uncertified<em>ceiling Bronze · 0 cells</em></span>
+    <span class="dot" aria-hidden="true"></span>
   </div>
-  <div class="dq-panel">
-    <div class="dq-h">Data integrity · medallion</div>
-    <div class="dq-line"><span class="lab">SURFACE · scanner_squeeze_results</span><span class="med"><i></i>Bronze</span></div>
-    <div class="dq-sub">own onboarding cert pending (0 cells met) — capped at weakest feed</div>
-    <div class="dq-line"><span class="lab">bars-daily · public.bars</span><span class="med"><i></i>Bronze</span></div>
-    <div class="dq-line"><span class="lab">gex-compute · public.options_gex_levels</span><span class="med"><i></i>Bronze</span></div>
-    <div class="dq-rule"><b>Rule:</b> surface tier = min(feeds). Both feeds T1-certified Bronze — bars-daily, gex-compute (BSGexCompute levels).<br>Supabase · nsrlrhofvzstwbfkxoyk</div>
+  <div class="dq-row">
+    <span class="lab"><b>bars-daily</b><small>public.bars</small></span>
+    <span class="tier">T1 · Bronze<em>certified</em></span>
+    <span class="dot" aria-hidden="true"></span>
   </div>
+  <div class="dq-row">
+    <span class="lab"><b>gex-compute</b><small>public.options_gex_levels</small></span>
+    <span class="tier">T1 · Bronze<em>BSGexCompute</em></span>
+    <span class="dot" aria-hidden="true"></span>
+  </div>
+  <div class="dq-foot"><b>surface = min(own cert, feeds)</b> — can't rate above weakest feed.<br>T0 Define · T1 Bronze · T2 Silver · T3 Gold · Supabase nsrlrhofvzstwbfkxoyk</div>
 </div>
 <div class="wrap">
   <div class="eyebrow">TradesPro · Engine · Scan</div>
