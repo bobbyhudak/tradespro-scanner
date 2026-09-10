@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Squeeze Scanner — The Rubric (17 conditions)</title>
+<style>
+  :root{
+    --bg:#0A141D; --panel:#0F1D29; --panel2:#122334; --line:#1E3549;
+    --text:#E7EEF5; --muted:#8AA0B4; --muted2:#5E7488;
+    --coil:#E8B54A; --up:#2FC08A; --down:#E4604E; --pos:#4A9BE8; --sec:#B07CE8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:"Inter",system-ui,-apple-system,sans-serif;padding:34px 26px 60px}
+  h1{font-family:"Barlow Condensed","Inter",sans-serif;font-weight:700;font-size:40px;
+    text-transform:uppercase;letter-spacing:.02em;margin:0 0 4px;line-height:.95}
+  .sub{color:var(--muted);font-size:13.5px;max-width:820px;line-height:1.5}
+  .sub b{color:var(--text);font-weight:600}
+  .src{color:var(--muted2);font-size:11px;margin-top:8px;font-family:"IBM Plex Mono",monospace}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin:18px 0 8px}
+  .chip{font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:20px;font-weight:600}
+  .chip.gate{color:var(--coil);border:1px solid var(--coil)}
+  .chip.score{color:var(--up);border:1px solid var(--up)}
+  .chip.kill{color:var(--down);border:1px solid var(--down)}
+  .grp{margin-top:26px}
+  .grp h2{font-family:"Barlow Condensed","Inter",sans-serif;font-weight:700;font-size:16px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 10px;
+    border-bottom:1px solid var(--line);padding-bottom:6px}
+  table{width:100%;border-collapse:collapse}
+  th{font-family:"IBM Plex Mono",monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted2);text-align:left;padding:4px 12px;font-weight:500}
+  td{padding:11px 12px;border-top:1px solid var(--line);vertical-align:top;font-size:13.5px}
+  tr:hover td{background:var(--panel)}
+  .k{font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted2)}
+  .lab{font-family:"Barlow Condensed","Inter",sans-serif;font-weight:600;font-size:17px;line-height:1.1}
+  .desc{color:var(--muted);font-size:12.5px;line-height:1.45;margin-top:3px;max-width:640px}
+  .pts{font-family:"IBM Plex Mono",monospace;font-weight:600;text-align:center;width:46px}
+  .pts.p2{color:var(--coil)} .pts.p1{color:var(--up)} .pts.p0{color:var(--muted2)}
+  .thr{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--pos);white-space:nowrap}
+  .fam{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted2)}
+  .badge{display:inline-block;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+    padding:2px 7px;border-radius:5px;font-weight:600;margin-left:8px;vertical-align:middle}
+  .badge.gate{color:var(--coil);background:rgba(232,181,74,.12)}
+  .badge.kill{color:var(--down);background:rgba(228,96,78,.12)}
+  .foot{margin-top:30px;color:var(--muted);font-size:12.5px;line-height:1.55;border-top:1px solid var(--line);padding-top:16px;max-width:820px}
+  .foot b{color:var(--text)}
+  .tot{color:var(--coil);font-weight:700}
+</style>
+</head>
+<body>
+  <h1>Squeeze Scanner — The Rubric</h1>
+  <div class="sub">The full scoring model behind <b>scanner.html</b> — all <b>17 conditions</b>, read live from <b>public.scanner_conditions</b>. Each is a row of data, not code: it carries <b>points</b>, a <b>threshold</b>, and an <b>enabled</b> flag. Change the table, change the scan. This is the layer to make configurable.</div>
+  <div class="src">source · public.scanner_conditions · project nsrlrhofvzstwbfkxoyk · read 2026-08-20 · all 17 currently enabled=true</div>
+
+  <div class="legend">
+    <span class="chip gate">Gate — the setup itself</span>
+    <span class="chip score">Score — grades quality</span>
+    <span class="chip kill">Kill — caps grade at D</span>
+  </div>
+
+  <div class="grp">
+    <h2>Gate — the entry condition</h2>
+    <table>
+      <tr><th>Condition</th><th>Threshold</th><th class="pts">Pts</th></tr>
+      <tr>
+        <td><span class="lab">Squeeze<span class="badge gate">gate</span></span>
+          <div class="desc">Bollinger Bands compressed inside the Keltner Channel (1.5×ATR): volatility is coiled — the spring is loaded. This is the setup; everything else grades its quality.</div>
+          <div class="k">squeeze_on · technical</div></td>
+        <td class="thr">kc_mult 1.5</td><td class="pts p0">0</td>
+      </tr>
+    </table>
+  </div>
+
+  <div class="grp">
+    <h2>Score — technical (8 pts possible)</h2>
+    <table>
+      <tr><th>Condition</th><th>Threshold</th><th class="pts">Pts</th></tr>
+      <tr><td><span class="lab">Tight coil</span><div class="desc">Extra-tight compression — BB width no more than 80% of the Keltner width. The tighter the coil, the harder the break tends to be.</div><div class="k">tight_squeeze · technical</div></td><td class="thr">max_ratio 0.8</td><td class="pts p1">1</td></tr>
+      <tr><td><span class="lab">Mature squeeze</span><div class="desc">In the squeeze 3+ days. Longer compression stores more energy than a 1-day blip.</div><div class="k">squeeze_mature · technical</div></td><td class="thr">min_days 3</td><td class="pts p1">1</td></tr>
+      <tr><td><span class="lab">MA stack</span><div class="desc">Moving averages stacked bullish (20 &gt; 50 &gt; 100 &gt; 200 SMA) — the trend agrees across every horizon.</div><div class="k">ma_stack · technical</div></td><td class="thr">—</td><td class="pts p2">2</td></tr>
+      <tr><td><span class="lab">Above 200-day</span><div class="desc">Price above its 200-day average — the long-term uptrend is intact.</div><div class="k">above_200 · technical</div></td><td class="thr">—</td><td class="pts p1">1</td></tr>
+      <tr><td><span class="lab">RSI healthy</span><div class="desc">RSI(14) between 50 and 80 — momentum positive but not exhausted.</div><div class="k">rsi_zone · technical</div></td><td class="thr">min 50 · max 80</td><td class="pts p1">1</td></tr>
+      <tr><td><span class="lab">MACD positive</span><div class="desc">MACD line above zero — medium-term momentum is with the trade.</div><div class="k">macd_pos · technical</div></td><td class="thr">—</td><td class="pts p1">1</td></tr>
+      <tr><td><span class="lab">RS leader</span><div class="desc">Relative strength: 63-day return in the top 30% of the liquid universe. Leaders break out; laggards break down.</div><div class="k">rs_leader · technical</div></td><td class="thr">min_pctile 70</td><td class="pts p2">2</td></tr>
+      <tr><td><span class="lab">Near 52-wk high</span><div class="desc">Within 15% of the 52-week high — minimal overhead supply to fight through.</div><div class="k">near_high · technical</div></td><td class="thr">within_pct 15</td><td class="pts p1">1</td></tr>
+    </table>
+  </div>
+
+  <div class="grp">
+    <h2>Score — positioning / GEX (4 pts possible)</h2>
+    <table>
+      <tr><th>Condition</th><th>Threshold</th><th class="pts">Pts</th></tr>
+      <tr><td><span class="lab">+Gamma regime</span><div class="desc">Spot above the gamma flip: dealers hedge AGAINST moves, dampening dips — supportive positioning.</div><div class="k">gamma_pos · positioning</div></td><td class="thr">—</td><td class="pts p1">1</td></tr>
+      <tr><td><span class="lab">Flip cushion</span><div class="desc">Spot at least 2% above the gamma flip — real cushion before the regime turns hostile.</div><div class="k">flip_cushion · positioning</div></td><td class="thr">min_pct 2</td><td class="pts p1">1</td></tr>
+      <tr><td><span class="lab">Room to run</span><div class="desc">At least 3% of headroom to the call wall — the dealer resistance shelf is not directly overhead.</div><div class="k">wall_room · positioning</div></td><td class="thr">min_pct 3</td><td class="pts p1">1</td></tr>
+      <tr><td><span class="lab">Call-side tilt</span><div class="desc">Call gamma outweighs put gamma (ratio ≥ 1) — the options market leans with the setup.</div><div class="k">call_tilt · positioning</div></td><td class="thr">min_ratio 1</td><td class="pts p1">1</td></tr>
+    </table>
+  </div>
+
+  <div class="grp">
+    <h2>Score — sector (1 pt possible)</h2>
+    <table>
+      <tr><th>Condition</th><th>Threshold</th><th class="pts">Pts</th></tr>
+      <tr><td><span class="lab">Sector backing</span><div class="desc">Its sector ETF is in positive gamma AND above its own 200-day — the group supports the name.</div><div class="k">sector_backing · sector</div></td><td class="thr">—</td><td class="pts p1">1</td></tr>
+    </table>
+  </div>
+
+  <div class="grp">
+    <h2>Kill — caps the grade at D</h2>
+    <table>
+      <tr><th>Condition</th><th>Threshold</th><th class="pts">Pts</th></tr>
+      <tr><td><span class="lab">Below the flip<span class="badge kill">kill</span></span><div class="desc">Spot is BELOW the gamma flip (negative gamma): dealers amplify moves and a long fights the flow. Carter's first kill-filter.</div><div class="k">kill_neg_gamma · positioning</div></td><td class="thr">—</td><td class="pts p0">D</td></tr>
+      <tr><td><span class="lab">Stage 4 decline<span class="badge kill">kill</span></span><div class="desc">Weinstein Stage 4 (declining). No long setups in downtrends.</div><div class="k">kill_stage4 · technical</div></td><td class="thr">—</td><td class="pts p0">D</td></tr>
+      <tr><td><span class="lab">Below 200-day<span class="badge kill">kill</span></span><div class="desc">Price under the 200-day average — a long squeeze against the primary trend.</div><div class="k">kill_below_200 · technical</div></td><td class="thr">—</td><td class="pts p0">D</td></tr>
+    </table>
+  </div>
+
+  <div class="foot">
+    <b>How it grades:</b> a name must first pass the <b>gate</b> (be in a squeeze) to appear. It then earns points across the 13 score conditions — <span class="tot">15 points possible</span> (8 technical + 4 positioning + 1 sector). The three <b>kill</b> conditions override the score and cap the grade at <b>D</b> no matter how many points were earned. Score percent = points earned ÷ points possible → letter grade.<br><br>
+    <b>Why this matters for "configurable":</b> every number on this page — points, thresholds, enabled — already lives in <b>public.scanner_conditions</b>, one row per condition. The scan reads the table each run. A config UI is a thin editor over these 17 rows, not a rewrite of the scanner.
+  </div>
+</body>
+</html>

@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>TradesPro Scanner V2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0A141D; --panel:#121F2B; --panel2:#16283A; --line:#22384A; --line-soft:#1B2E3E;
+    --text:#E9F0F4; --muted:#7E95A3; --muted-2:#597285;
+    --coil:#F5B84B; --coil-deep:#FFCF70; --coil-dim:#6d5426;
+    --up:#2FC08A; --down:#E4604E; --gB:#8FD3B4;
+  }
+  *{box-sizing:border-box} html,body{margin:0}
+  body{background:radial-gradient(1100px 520px at 88% -10%, #14293a 0, rgba(20,41,58,0) 55%), var(--ink);
+    color:var(--text);font-family:"Inter",system-ui,sans-serif;line-height:1.45;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1280px;margin:0 auto;padding:26px 22px 90px}
+  a{color:inherit}
+  :focus-visible{outline:2px solid var(--coil);outline-offset:2px;border-radius:6px}
+
+  .eyebrow{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--muted-2)}
+  .top{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;flex-wrap:wrap;margin-top:4px}
+  h1{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:46px;letter-spacing:.01em;text-transform:uppercase;margin:0;line-height:.95}
+  h1 em{font-style:normal;color:var(--coil)}
+  .sub{max-width:660px;color:var(--muted);font-size:13px;margin-top:9px}
+  .sub b{color:var(--text);font-weight:600}
+  .asof{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);text-align:right;line-height:1.8}
+  .asof b{color:var(--coil);font-size:21px}
+
+  .controls{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin:20px 0 24px;
+    background:linear-gradient(180deg,var(--panel),#10202c);border:1px solid var(--line-soft);border-radius:12px;padding:11px 14px}
+  .ctl{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--text);background:#0e1c27;border:1px solid var(--line);border-radius:8px;padding:8px 10px;outline:none}
+  .tg{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--muted);border:1px solid var(--line);background:#0e1c27;padding:8px 12px;border-radius:8px;cursor:pointer;user-select:none;display:inline-flex;align-items:center;gap:7px}
+  .tg .box{width:11px;height:11px;border-radius:3px;border:1.5px solid var(--muted-2)}
+  .tg.on{color:var(--text);border-color:var(--up)} .tg.on .box{background:var(--up);border-color:var(--up)}
+  .rubbtn{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--coil);border:1px solid var(--coil-dim);background:rgba(245,184,75,.07);padding:8px 14px;border-radius:8px;cursor:pointer}
+
+  .tierhead{display:flex;align-items:baseline;gap:12px;margin:30px 0 12px}
+  .tierhead .t{font-family:"Barlow Condensed";font-weight:700;font-size:24px;letter-spacing:.05em;text-transform:uppercase}
+  .tierhead .n{font-family:"IBM Plex Mono";font-size:13px;color:var(--coil)}
+  .tierhead .d{font-size:12px;color:var(--muted-2)}
+  .tierhead.watch .t{color:var(--gB)} .tierhead.rest .t{color:var(--muted-2)}
+
+  /* ── A-tier candidate cards ─────────────────────────────── */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:12px}
+  .acard{background:linear-gradient(180deg,var(--panel),#101f2c);border:1px solid var(--line-soft);border-radius:14px;
+    padding:16px 18px 14px;cursor:pointer;position:relative;overflow:hidden;transition:transform .13s,border-color .13s}
+  .acard:hover{transform:translateY(-2px);border-color:#396380}
+  .acard::before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:linear-gradient(90deg,var(--coil),rgba(245,184,75,0))}
+  .a-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .a-tk{font-family:"Barlow Condensed";font-weight:700;font-size:30px;line-height:1;letter-spacing:.01em}
+  .a-nm{font-size:11px;color:var(--muted);margin-top:2px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .a-gr{font-family:"Barlow Condensed";font-weight:700;font-size:26px;color:var(--up);background:rgba(47,192,138,.13);
+    width:46px;height:40px;line-height:40px;text-align:center;border-radius:9px;flex:none}
+  .a-spot{font-family:"IBM Plex Mono";font-size:12px;color:var(--muted);text-align:right;margin-right:10px}
+  .a-spot b{color:var(--text);font-size:15px}
+
+  /* the facts strip: score first, then the setup numbers — plain and labeled */
+  .facts{display:flex;gap:8px;margin:13px 0 4px}
+  .fact{flex:1;background:#0e1b26;border:1px solid var(--line-soft);border-radius:8px;padding:7px 10px}
+  .fact .k{font-family:"IBM Plex Mono";font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted-2)}
+  .fact .v{font-family:"IBM Plex Mono";font-size:15px;font-weight:600;margin-top:2px}
+  .fact .v small{font-size:10px;color:var(--muted);font-weight:400}
+  .fact.score{border-left:3px solid var(--coil)} .fact.score .v{color:var(--coil)}
+
+  .a-read{font-size:12.5px;color:var(--muted);line-height:1.55;margin:10px 0 12px;min-height:38px}
+  .a-read b{color:var(--text);font-weight:600}
+  .a-read .miss{color:var(--muted-2)}
+  .a-ft{display:flex;justify-content:space-between;align-items:center;font-family:"IBM Plex Mono";font-size:10.5px;color:var(--muted)}
+  .a-ft .sec{border:1px solid var(--line);border-radius:5px;padding:2px 8px}
+  .a-ft .sec b{margin-left:4px}
+  .a-ft .gam{font-weight:600}
+  .a-ft .gam.p{color:var(--up)} .a-ft .gam.n{color:var(--down)}
+
+  /* ── B/C watch rows ─────────────────────────────────────── */
+  .rows{display:flex;flex-direction:column;gap:5px}
+  .row{display:grid;grid-template-columns:46px 1.1fr 170px 1fr 130px;gap:12px;align-items:center;
+    background:var(--panel);border:1px solid var(--line-soft);border-radius:9px;padding:9px 14px;cursor:pointer;transition:border-color .12s}
+  .row:hover{border-color:#2e546d;background:var(--panel2)}
+  .grade{font-family:"Barlow Condensed";font-weight:700;font-size:21px;text-align:center;width:38px;height:32px;line-height:32px;border-radius:7px}
+  .g-Ap,.g-A{color:var(--up);background:rgba(47,192,138,.13)} .g-B{color:var(--gB);background:rgba(47,192,138,.07)}
+  .g-C{color:var(--coil);background:rgba(245,184,75,.11)} .g-D,.g-F{color:var(--down);background:rgba(228,96,78,.11)}
+  .sym .tk{font-family:"Barlow Condensed";font-weight:600;font-size:18px}
+  .sym .sec{font-family:"IBM Plex Mono";font-size:10px;color:var(--muted-2)}
+  .mini{display:flex;align-items:center;gap:7px;font-family:"IBM Plex Mono";font-size:10px;color:var(--muted)}
+  .mini .m{height:7px;border-radius:4px;background:#0d1a24;border:1px solid var(--line-soft);flex:1;position:relative;overflow:hidden}
+  .mini .m i{position:absolute;left:0;top:0;bottom:0;background:var(--coil);border-radius:4px}
+  .rowread{font-size:11.5px;color:var(--muted-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rowpos{font-family:"IBM Plex Mono";font-size:10.5px;text-align:right;color:var(--muted)}
+  .rowpos .p{color:var(--up)} .rowpos .n{color:var(--down)}
+
+  /* ── rest (killed / weak) ───────────────────────────────── */
+  .resthead{cursor:pointer;user-select:none}
+  .resthead .t::after{content:" ▸"} .resthead.open .t::after{content:" ▾"}
+  .rrow{display:grid;grid-template-columns:46px 1fr 1.4fr;gap:12px;align-items:center;
+    background:rgba(18,31,43,.5);border:1px solid rgba(27,46,62,.6);border-radius:9px;padding:7px 14px;cursor:pointer}
+  .rrow .why{font-family:"IBM Plex Mono";font-size:10.5px;color:var(--down);opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rrow .why.weak{color:var(--muted-2)}
+  .rrow:hover{border-color:#2e546d}
+
+  .state{padding:56px;text-align:center;color:var(--muted);font-family:"IBM Plex Mono";font-size:13px}
+
+  /* view toggle + flat list */
+  .vtg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .vtg span{font-family:"IBM Plex Mono";font-size:12px;color:var(--muted);padding:8px 13px;cursor:pointer;user-select:none}
+  .vtg span.on{color:#0A141D;background:var(--coil);font-weight:600}
+  .lt{width:100%;border-collapse:separate;border-spacing:0 4px}
+  .lt th{font-family:"IBM Plex Mono";font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-2);text-align:left;padding:2px 10px;font-weight:500;cursor:pointer;user-select:none}
+  .lt th.num,.lt td.num{text-align:right}
+  .lt th.on{color:var(--coil)}
+  .lt td{background:var(--panel);padding:8px 10px;font-family:"IBM Plex Mono";font-size:12px;color:var(--muted);border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft)}
+  .lt tr.r{cursor:pointer}
+  .lt tr.r:hover td{background:var(--panel2)}
+  .lt td:first-child{border-left:1px solid var(--line-soft);border-radius:8px 0 0 8px}
+  .lt td:last-child{border-right:1px solid var(--line-soft);border-radius:0 8px 8px 0}
+  .lt .tk{font-family:"Barlow Condensed";font-weight:600;font-size:16px;color:var(--text)}
+  .lt .gsm{font-family:"Barlow Condensed";font-weight:700;font-size:16px;padding:1px 8px;border-radius:6px}
+  .lt .pts{color:var(--coil);font-weight:600}
+  .lt .veto{color:var(--down);font-size:10.5px}
+  .lt tr.killed td{opacity:.75}
+
+  /* rubric drawer */
+  .drawer{position:fixed;top:0;right:-420px;width:400px;max-width:92vw;bottom:0;background:linear-gradient(180deg,#101f2b,#0c1822);
+    border-left:1px solid var(--line);z-index:60;transition:right .22s;overflow:auto;padding:22px}
+  .drawer.open{right:0;box-shadow:-30px 0 70px rgba(0,0,0,.5)}
+  .drawer h2{font-family:"Barlow Condensed";font-size:24px;text-transform:uppercase;letter-spacing:.03em;margin:0 0 4px}
+  .drawer .note{font-size:12px;color:var(--muted);margin-bottom:16px}
+  .rgroup{font-family:"IBM Plex Mono";font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--coil);margin:18px 0 8px}
+  .rgroup.kill{color:var(--down)} .rgroup.gate{color:var(--text)}
+  .rcond{border:1px solid var(--line-soft);border-radius:9px;padding:10px 12px;margin-bottom:7px;background:rgba(255,255,255,.015)}
+  .rcond .hd{display:flex;justify-content:space-between;align-items:center;font-family:"IBM Plex Mono";font-size:12px}
+  .rcond .pts{color:var(--coil);font-weight:600}
+  .rcond .ds{font-size:11.5px;color:var(--muted);margin-top:4px;line-height:1.5}
+
+  /* detail overlay (scoresheet) */
+  .overlay{display:none;position:fixed;inset:0;background:rgba(5,11,16,.82);backdrop-filter:blur(3px);z-index:70;align-items:flex-start;justify-content:center;padding:30px 18px;overflow:auto}
+  .card{width:640px;max-width:100%;background:linear-gradient(180deg,var(--panel),#0e1c28);border:1px solid var(--line);border-radius:16px;box-shadow:0 30px 90px rgba(0,0,0,.6)}
+  .c-hd{display:flex;justify-content:space-between;align-items:flex-start;padding:20px 22px 14px;border-bottom:1px solid var(--line-soft)}
+  .c-tk{font-family:"Barlow Condensed";font-weight:700;font-size:34px;line-height:1}
+  .c-nm{font-size:12px;color:var(--muted);margin-top:3px}
+  .c-gr{font-family:"Barlow Condensed";font-weight:700;font-size:32px;width:56px;height:50px;line-height:50px;text-align:center;border-radius:11px;margin-left:14px}
+  .c-spot{font-family:"IBM Plex Mono";font-size:11px;color:var(--muted);text-align:right}
+  .c-spot b{color:var(--text);font-size:17px}
+  .c-kill{margin:14px 22px 0;border:1px solid rgba(228,96,78,.4);background:rgba(228,96,78,.08);border-radius:9px;padding:10px 13px;font-size:12.5px;color:#f0a99f}
+  .c-kill b{color:var(--down)}
+  .c-sec{padding:14px 22px 4px}
+  .c-lbl{font-family:"IBM Plex Mono";font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted-2);margin-bottom:9px}
+  .bk{border-top:1px solid var(--line-soft)}
+  .bk-row{display:flex;align-items:baseline;gap:10px;padding:9px 22px;border-bottom:1px solid rgba(255,255,255,.03)}
+  .bk-dot{width:8px;height:8px;border-radius:50%;flex:none;transform:translateY(-1px)}
+  .bk-dot.y{background:var(--up)} .bk-dot.n{background:#31424f} .bk-dot.k{background:var(--down)} .bk-dot.na{background:transparent;border:1px dashed var(--muted-2)}
+  .bk-lab{font-size:13px;font-weight:600;min-width:150px}
+  .bk-val{font-family:"IBM Plex Mono";font-size:12px;color:var(--muted);flex:1}
+  .bk-pts{font-family:"IBM Plex Mono";font-size:12px;color:var(--muted-2);min-width:44px;text-align:right}
+  .bk-pts.y{color:var(--up)}
+  .bk-desc{font-size:11.5px;color:var(--muted-2);padding:0 22px 9px 40px;margin-top:-4px;line-height:1.5}
+  .ladder{padding:2px 22px 10px}
+  .ladder svg{width:100%;height:auto;display:block}
+  .ladder .lv:hover line{stroke-width:3.5}
+  .ladder text{font-family:"IBM Plex Mono",monospace}
+  .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 22px 16px}
+  .tile{background:#0e1b26;border:1px solid var(--line-soft);border-radius:9px;padding:9px 11px}
+  .tile .k{font-family:"IBM Plex Mono";font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted-2)}
+  .tile .v{font-family:"IBM Plex Mono";font-size:15px;font-weight:600;margin-top:3px}
+  .c-foot{padding:14px 22px 20px;display:flex;gap:10px}
+  .btn{flex:1;text-align:center;font-family:"IBM Plex Mono";font-size:12px;padding:11px;border-radius:9px;text-decoration:none;cursor:pointer;border:1px solid var(--line);color:var(--muted)}
+  .btn.prim{color:#0A141D;background:var(--coil);border-color:var(--coil);font-weight:600}
+
+  footer{margin-top:38px;padding-top:16px;border-top:1px solid var(--line-soft);font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--muted-2);line-height:2}
+  footer b{color:var(--muted)}
+
+  @keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .acard{animation:rise .3s ease both}
+  .acard:nth-child(2){animation-delay:.04s}.acard:nth-child(3){animation-delay:.08s}
+  .acard:nth-child(4){animation-delay:.12s}.acard:nth-child(5){animation-delay:.16s}.acard:nth-child(6){animation-delay:.2s}
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important;animation:none !important} }
+  @media(max-width:760px){
+    .row{grid-template-columns:46px 1fr 130px}
+    .rowread,.rowpos{display:none}
+    .rrow{grid-template-columns:46px 1fr}
+    .rrow .why{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">TradesPro · Engine · Scan</div>
+  <div class="top">
+    <div>
+      <h1>TradesPro <em>Scanner V2</em></h1>
+      <div class="sub">The whole liquid universe (~1,100) is graded every morning; by default you see only names <b>in a squeeze</b> (Bollinger Bands inside the Keltner Channel — coiled, break pending). Flip "in squeeze only" off to see everything. Candidates are the squeezes the rubric grades A; the watch tier is building but not ready; everything vetoed says why. <b>Nothing is ranked that isn't in a squeeze.</b></div>
+    </div>
+    <div class="asof" id="asof">loading…</div>
+  </div>
+
+  <div class="controls">
+    <input class="ctl" id="q" type="search" placeholder="ticker or name…" style="width:170px" autocomplete="off"/>
+    <select class="ctl" id="sector"><option value="">All sectors</option></select>
+    <div class="tg on" data-f="squeezeOnly"><span class="box"></span>in squeeze only</div>
+    <div class="tg" data-f="gexOnly"><span class="box"></span>has GEX</div>
+    <div class="tg" data-f="hideVetoed"><span class="box"></span>hide vetoed</div>
+    <div class="vtg" id="vtg"><span data-v="cards" class="on">Cards</span><span data-v="list">List</span></div>
+    <select class="ctl" id="sort">
+      <option value="score">Sort · grade</option><option value="coil">Sort · tightest coil</option>
+      <option value="days">Sort · days in squeeze</option><option value="rs">Sort · rel strength</option>
+    </select>
+    <div class="rubbtn" id="rubbtn" role="button" tabindex="0">The rubric ▸</div>
+  </div>
+
+  <div id="board"><div class="state">pulling the coiled names…</div></div>
+
+  <footer>
+    <div><b>Gate</b> — only names currently in a 1.5×ATR squeeze appear. <b>Grade</b> — points earned across trend, momentum, relative strength and gamma positioning; kill-filters cap a name at D and say why. Open “The rubric” for every rule, threshold, and weight — the rubric is a database table, not code, and changes on request.</div>
+    <div><b>Universe</b> — the liquid ~1,100 (lake priority ≤ 2). Positioning from our FlashAlpha-baseline engine on Polygon chains. Technicals as of the last completed session.</div>
+  </footer>
+</div>
+
+<div class="drawer" id="drawer">
+  <h2>The rubric</h2>
+  <div class="note">This scan is defined by the rows below — stored as data, editable without code. Say the word and a threshold or weight changes.</div>
+  <div id="rubric"></div>
+</div>
+
+<div class="overlay" id="overlay" onclick="if(event.target===this)closeCard()"><div class="card" id="card"></div></div>
+
+<script>
+const SB="https://nsrlrhofvzstwbfkxoyk.supabase.co", KEY="sb_publishable_UYpFi4wR3sa87QU89Xx_Bg_gk5gw1Z9";
+const HDRS={apikey:KEY,authorization:"Bearer "+KEY,"content-type":"application/json"};
+const SECN={XLK:'Tech',XLV:'Health',XLF:'Fins',XLY:'Cons Disc',XLP:'Staples',XLE:'Energy',XLU:'Utes',XLB:'Materials',XLI:'Indus',XLRE:'REITs',XLC:'Comms',SMH:'Semis',KRE:'Banks'};
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const state={rows:[],conds:[],gexOnly:false,hideVetoed:false,squeezeOnly:true,sector:'',sort:'score',view:'cards',q:''};
+const gcls=g=>g==='A+'?'g-Ap':g==='A'?'g-A':g==='B'?'g-B':g==='C'?'g-C':g==='D'?'g-D':'g-F';
+const f=(n,d=0)=>n==null?'—':Number(n).toLocaleString(undefined,{maximumFractionDigits:d,minimumFractionDigits:d});
+
+// one-sentence read composed from the row's own scoresheet
+function readOf(x){
+  const bits=[];
+  if(x.fire_bias==='short') bits.push('<b style="color:var(--down)">momentum rolling over — fires SHORT</b>');
+  if(x.squeeze_days>=2) bits.push(`<b>${x.squeeze_days} days</b> coiled`+(x.bb_kc_ratio!=null?` at <b>${x.bb_kc_ratio}</b>`:''));
+  else if(x.bb_kc_ratio!=null) bits.push(`coil <b>${x.bb_kc_ratio}</b>, day 1`);
+  if(x.rs_pctile!=null&&x.rs_pctile>=70) bits.push(`RS <b>${f(x.rs_pctile)}</b>`);
+  if(x.has_gex&&x.regime==='positive') bits.push(`riding <b>+γ</b>`+(x.dist_to_flip!=null?` with ${f(x.dist_to_flip,1)}% cushion`:''));
+  const missing=(x.breakdown||[]).filter(c=>c.kind==='score'&&c.earned===false)
+    .sort((a,b)=>b.points-a.points).slice(0,2).map(c=>c.label);
+  let s=bits.join(', ')+'.';
+  if(missing.length) s+=` <span class="miss">Missing: ${missing.join(', ').toLowerCase()}.</span>`;
+  else if(bits.length) s+=' <span class="miss">Nothing missing worth naming.</span>';
+  return s;
+}
+function factsStrip(x){
+  return `<div class="facts">
+    <div class="fact score"><div class="k">Score</div><div class="v">${f(x.points_earned)}/${f(x.points_possible)} <small>${f(x.score_pct)}%</small></div></div>
+    <div class="fact"><div class="k">Squeeze</div><div class="v">${x.in_squeeze?(x.squeeze_days??'—')+'d':'off'} <small>ratio ${x.bb_kc_ratio??'—'}</small></div></div>
+    <div class="fact"><div class="k">Rel strength</div><div class="v">${x.rs_pctile!=null?f(x.rs_pctile):'—'} <small>pctile</small></div></div>
+    <div class="fact"><div class="k">Fires</div><div class="v" style="color:${x.fire_bias==='long'?'var(--up)':x.fire_bias==='short'?'var(--down)':'var(--muted)'}">${(x.fire_bias||'—').toUpperCase()} <small>Δmacd ${x.macd_slope>0?'+':''}${x.macd_slope??''}</small></div></div>
+  </div>`;
+}
+
+async function load(){
+  try{
+    const condsR = await fetch(SB+"/rest/v1/scanner_conditions?enabled=eq.true&order=sort",{headers:HDRS});
+    state.rows=[];
+    for(let off=0;;off+=1000){  // the API caps responses at 1,000 rows — page through
+      const r=await fetch(SB+"/rest/v1/scanner_squeeze_latest?select=*&order=score_pct.desc.nullslast&limit=1000&offset="+off,{headers:HDRS});
+      if(!r.ok) throw new Error("scan HTTP "+r.status);
+      const page=await r.json();
+      state.rows.push(...page);
+      if(page.length<1000) break;
+    }
+    state.conds=condsR.ok?await condsR.json():[];
+    const secs=[...new Set(state.rows.map(x=>x.sector_etf).filter(Boolean))].sort();
+    $("#sector").innerHTML='<option value="">All sectors</option>'+secs.map(s=>`<option value="${s}">${SECN[s]||s}</option>`).join('');
+    const sq=state.rows.filter(x=>x.in_squeeze);
+    const cand=sq.filter(x=>['A+','A'].includes(x.grade)&&!(x.kills&&x.kills.length)).length;
+    $("#asof").innerHTML=`<b>${cand}</b> candidates<br>${sq.length} in squeeze of ${state.rows.length} graded · data ${state.rows[0]?.as_of||'—'}`;
+    renderRubric(); render();
+  }catch(e){ $("#board").innerHTML='<div class="state">feed error: '+esc(e.message)+'</div>'; }
+}
+function renderRubric(){
+  const g={gate:[],score:[],kill:[]};
+  for(const c of state.conds)(g[c.kind]||g.score).push(c);
+  const cond=c=>`<div class="rcond"><div class="hd"><span>${esc(c.label)}</span><span class="pts">${c.kind==='score'?'+'+c.points+' pt'+(c.points>1?'s':''):(c.kind==='gate'?'GATE':'KILL → D')}</span></div><div class="ds">${esc(c.description)}</div></div>`;
+  $("#rubric").innerHTML=
+    `<div class="rgroup gate">Gate — must be true to appear</div>`+g.gate.map(cond).join('')+
+    `<div class="rgroup">Scored — earns the grade</div>`+g.score.map(cond).join('')+
+    `<div class="rgroup kill">Kill — caps the grade at D</div>`+g.kill.map(cond).join('');
+}
+function filt(r){
+  if(state.q){const q=state.q.toUpperCase();
+    r=r.filter(x=>x.ticker.toUpperCase().startsWith(q)||(x.name||'').toUpperCase().includes(q));}
+  if(state.squeezeOnly&&!state.q) r=r.filter(x=>x.in_squeeze);
+  if(state.gexOnly) r=r.filter(x=>x.has_gex);
+  if(state.sector) r=r.filter(x=>x.sector_etf===state.sector);
+  r.sort((a,b)=> state.sort==='coil'?(a.bb_kc_ratio??9)-(b.bb_kc_ratio??9)
+    : state.sort==='days'?(b.squeeze_days||0)-(a.squeeze_days||0)
+    : state.sort==='rs'?(b.rs_pctile||0)-(a.rs_pctile||0)
+    : ((b.score_pct??-1)-(a.score_pct??-1))||(b.rs_pctile||0)-(a.rs_pctile||0));
+  return r;
+}
+function render(){
+  const all=filt(state.rows.slice());
+  const killed=x=>x.kills&&x.kills.length;
+  const cands=all.filter(x=>['A+','A'].includes(x.grade)&&!killed(x));
+  const watch=all.filter(x=>['B','C'].includes(x.grade)&&!killed(x));
+  const rest =all.filter(x=>killed(x)||['D','F'].includes(x.grade));
+  window._ix={}; all.forEach((x,i)=>window._ix[x.ticker]=x);
+
+  const acard=x=>{
+    const sg=x.sector_grade;
+    return `<div class="acard" onclick="openCard('${esc(x.ticker)}')" tabindex="0" role="button">
+      <div class="a-hd">
+        <div><div class="a-tk">${esc(x.ticker)}</div><div class="a-nm">${esc(x.name||'')}</div></div>
+        <div style="display:flex;align-items:center"><div class="a-spot"><b>${f(x.spot,x.spot>1000?0:2)}</b><div>spot</div></div>
+        <div class="a-gr">${x.grade}</div></div>
+      </div>
+      ${factsStrip(x)}
+      <div class="a-read">${readOf(x)}</div>
+      <div class="a-ft">
+        <span class="sec">${x.sector_etf?esc(x.sector_etf)+' · '+(SECN[x.sector_etf]||''):'no sector map'}${sg&&sg.grade?` <b class="${gcls(sg.grade)}" style="background:none">${sg.grade}</b>`:''}</span>
+        <span class="gam ${x.regime==='positive'?'p':x.regime?'n':''}">${x.has_gex?((x.regime==='positive'?'+γ ':'−γ ')+(x.dist_to_flip!=null?(x.dist_to_flip>0?'+':'')+f(x.dist_to_flip,1)+'%':'')):'GEX pending'}</span>
+      </div>
+    </div>`;
+  };
+  const wrow=x=>{
+    const tight=x.bb_kc_ratio==null?0:Math.max(0,Math.min(1,1.05-x.bb_kc_ratio));
+    return `<div class="row" onclick="openCard('${esc(x.ticker)}')">
+      <div class="grade ${gcls(x.grade)}">${x.grade}</div>
+      <div class="sym"><div class="tk">${esc(x.ticker)} <span style="font-size:11px;color:${x.fire_bias==='long'?'var(--up)':x.fire_bias==='short'?'var(--down)':'var(--muted-2)'}">${x.fire_bias==='long'?'▲':x.fire_bias==='short'?'▼':'–'}</span></div><div class="sec">${x.sector_etf?esc(x.sector_etf):''} ${esc((x.name||'').slice(0,26))}</div></div>
+      <div class="mini"><span class="pts" style="color:var(--coil)">${f(x.points_earned)}/${f(x.points_possible)}</span><span>${x.squeeze_days??'—'}d</span><div class="m"><i style="width:${Math.round(tight*100)}%"></i></div><span>${x.bb_kc_ratio??''}</span></div>
+      <div class="rowread">${(x.breakdown||[]).filter(c=>c.kind==='score'&&c.earned===false).sort((a,b)=>b.points-a.points).slice(0,2).map(c=>'needs '+esc(c.label.toLowerCase())).join(' · ')||'—'}</div>
+      <div class="rowpos">${x.has_gex?`<span class="${x.regime==='positive'?'p':'n'}">${x.regime==='positive'?'+γ':'−γ'}</span> ${x.dist_to_flip!=null?(x.dist_to_flip>0?'+':'')+f(x.dist_to_flip,1)+'%':''} · RS ${f(x.rs_pctile)}`:'GEX pending'}</div>
+    </div>`;
+  };
+  const rrow=x=>{
+    const shortCand=killed(x)&&x.fire_bias==='short';
+    const why=killed(x)
+      ?((shortCand?'<b style="color:var(--down)">SHORT setup?</b> long-vetoed: ':'vetoed: ')+esc(x.kills.map(k=>k.label).join(' + ')))
+      :('low score — '+f(x.score_pct)+'%');
+    return `<div class="rrow" onclick="openCard('${esc(x.ticker)}')">
+      <div class="grade ${gcls(x.grade)}">${x.grade}</div>
+      <div class="sym"><div class="tk">${esc(x.ticker)}</div></div>
+      <div class="why ${killed(x)?'':'weak'}"><span style="color:var(--coil)">${f(x.points_earned)}/${f(x.points_possible)}</span> · ${why}</div>
+    </div>`;
+  };
+
+  if(state.view==='list'){
+    const flat=all;
+    $("#board").innerHTML=`<table class="lt"><thead><tr>
+        <th>Grade</th><th class="num">Score</th><th>Fires</th><th>Symbol</th><th>Sector</th>
+        <th class="num">Sqz days</th><th class="num">Ratio</th><th class="num">RS</th>
+        <th class="num">γ vs flip</th><th>Missing / veto</th></tr></thead><tbody>
+      ${flat.map(x=>{
+        const k=killed(x);
+        const note=k?`<span class="veto">vetoed: ${esc(x.kills.map(v=>v.label).join(' + '))}</span>`
+          :esc((x.breakdown||[]).filter(c=>c.kind==='score'&&c.earned===false).sort((a,b)=>b.points-a.points).slice(0,2).map(c=>c.label.toLowerCase()).join(', ')||'—');
+        return `<tr class="r ${k?'killed':''}" onclick="openCard('${esc(x.ticker)}')">
+          <td><span class="gsm ${gcls(x.grade)}">${x.grade}</span></td>
+          <td class="num"><span class="pts">${f(x.points_earned)}/${f(x.points_possible)}</span> · ${f(x.score_pct)}%</td>
+          <td style="color:${x.fire_bias==='long'?'var(--up)':x.fire_bias==='short'?'var(--down)':'var(--muted-2)'};font-weight:600">${(x.fire_bias||'—').toUpperCase()}</td>
+          <td><span class="tk">${esc(x.ticker)}</span> <span style="font-size:10px">${esc((x.name||'').slice(0,22))}</span></td>
+          <td>${x.sector_etf?esc(x.sector_etf):'—'}${x.sector_grade&&x.sector_grade.grade?' '+x.sector_grade.grade:''}</td>
+          <td class="num">${x.squeeze_days??'—'}</td>
+          <td class="num">${x.bb_kc_ratio??'—'}</td>
+          <td class="num">${x.rs_pctile!=null?f(x.rs_pctile):'—'}</td>
+          <td class="num" style="color:${x.regime==='positive'?'var(--up)':x.regime?'var(--down)':'var(--muted-2)'}">${x.has_gex?((x.dist_to_flip>0?'+':'')+f(x.dist_to_flip,1)+'%'):'—'}</td>
+          <td>${note}</td></tr>`;
+      }).join('')}</tbody></table>`;
+    return;
+  }
+  $("#board").innerHTML=
+    `<div class="tierhead"><span class="t" style="color:var(--up)">Candidates</span><span class="n">${cands.length}</span><span class="d">A-grade squeezes — the rubric found nothing disqualifying</span></div>`+
+    (cands.length?`<div class="cards">${cands.map(acard).join('')}</div>`:`<div class="state">No A-grade squeezes today. The watch tier below shows what’s building.</div>`)+
+    `<div class="tierhead watch"><span class="t">Watch</span><span class="n">${watch.length}</span><span class="d">in a squeeze, building — each row says what’s still missing</span></div>`+
+    (watch.length?`<div class="rows">${watch.map(wrow).join('')}</div>`:`<div class="state">Nothing in the middle today.</div>`)+
+    (state.hideVetoed?'':`<div class="tierhead rest"><span class="t">Vetoed &amp; weak</span><span class="n">${rest.length}</span><span class="d">killed by a LONG rule or scoring low — a squeeze vetoed for longs that fires short may be a SHORT setup; each row says so</span></div>
+      <div class="rows">${rest.map(rrow).join('')}</div>`);
+}
+// The positioning ladder: spot vs the named dealer levels on one price axis.
+// Status colors (support/resistance/boundary) + neutral gray; every mark direct-labeled.
+function ladder(x){
+  const fmtP=v=>f(v, v>1000?0:2);
+  const raw=[
+    {k:'put wall', v:x.put_wall,   c:'var(--up)',   role:'support'},
+    {k:'flip',     v:x.gamma_flip, c:'var(--coil)', role:'regime boundary'},
+    {k:'max pain', v:x.max_pain,   c:'var(--muted)',role:'expiry magnet'},
+    {k:'pin',      v:x.abs_gamma,  c:'var(--muted)',role:'largest |gamma|'},
+    {k:'call wall',v:x.call_wall,  c:'var(--down)', role:'resistance'},
+  ].filter(l=>l.v!=null&&isFinite(l.v));
+  if(!raw.length||x.spot==null) return '';
+  const vals=raw.map(l=>l.v).concat([x.spot]);
+  let lo=Math.min(...vals), hi=Math.max(...vals);
+  const pad=(hi-lo)*0.07||lo*0.01; lo-=pad; hi+=pad;
+  const W=560,H=104,L=14,R=14,axY=62;
+  const X=v=>L+(v-lo)/(hi-lo)*(W-L-R);
+  // merge levels that land within 7px of each other
+  const sorted=raw.slice().sort((a,b)=>a.v-b.v), groups=[];
+  for(const l of sorted){
+    const g=groups[groups.length-1];
+    if(g && X(l.v)-X(g.v)<7){ g.ks.push(l.k); if(g.c==='var(--muted)') g.c=l.c; }
+    else groups.push({v:l.v,c:l.c,ks:[l.k],role:l.role});
+  }
+  // alternate label lanes above/below the axis to dodge collisions
+  let els='', lane=0;
+  for(const g of groups){
+    const gx=X(g.v), up=(lane++%2===0);
+    const nameY=up?axY-34:axY+26, valY=up?axY-23:axY+37;
+    els+=`<g class="lv"><title>${esc(g.ks.join(' = '))} — ${esc(g.role)} · ${fmtP(g.v)}</title>
+      <line x1="${gx}" y1="${axY-14}" x2="${gx}" y2="${axY+14}" stroke="${g.c}" stroke-width="2.5"/>
+      <text x="${gx}" y="${nameY}" text-anchor="middle" font-size="8.5" letter-spacing=".08em" fill="var(--muted-2)" style="text-transform:uppercase">${esc(g.ks.join(' = '))}</text>
+      <text x="${gx}" y="${valY}" text-anchor="middle" font-size="10.5" fill="var(--text)">${fmtP(g.v)}</text></g>`;
+  }
+  // the box between the walls (dealer range), then spot with a surface ring
+  const bw = x.put_wall!=null&&x.call_wall!=null
+    ? `<rect x="${X(x.put_wall)}" y="${axY-11}" width="${Math.max(0,X(x.call_wall)-X(x.put_wall))}" height="22" fill="var(--coil)" opacity="0.045"/>` : '';
+  const sx=X(x.spot);
+  const spot=`<g class="lv"><title>spot · ${fmtP(x.spot)}</title>
+    <circle cx="${sx}" cy="${axY}" r="7" fill="var(--ink)"/>
+    <circle cx="${sx}" cy="${axY}" r="5" fill="var(--text)"/>
+    <text x="${sx}" y="${axY-34+(groups.length%2===0?0:0)}" text-anchor="middle" font-size="8.5" letter-spacing=".08em" fill="var(--text)" font-weight="600" dy="${groups.some(g=>Math.abs(X(g.v)-sx)<30)?-13:0}">SPOT ${fmtP(x.spot)}</text></g>`;
+  return `<div class="ladder"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Price ladder: spot ${fmtP(x.spot)} versus dealer levels">
+    <line x1="${L}" y1="${axY}" x2="${W-R}" y2="${axY}" stroke="var(--line)" stroke-width="1"/>
+    ${bw}${els}${spot}</svg></div>`;
+}
+function openCard(tk){
+  const x=window._ix[tk]; if(!x)return;
+  const killed=x.kills&&x.kills.length;
+  const fam={technical:[],positioning:[],sector:[]};
+  for(const c of (x.breakdown||[]))(fam[c.family]||fam.technical).push(c);
+  const bkRow=c=>{
+    const dot=c.kind==='kill'?(c.earned?'k':'n'):(c.earned===null?'na':(c.earned?'y':'n'));
+    const pts=c.kind==='score'?(c.earned===null?'—':(c.earned?'+'+c.points:'0')+' / '+c.points):(c.kind==='gate'?'gate':(c.earned?'KILL':'ok'));
+    return `<div class="bk-row"><span class="bk-dot ${dot}"></span><span class="bk-lab">${esc(c.label)}</span><span class="bk-val">${esc(c.value)}</span><span class="bk-pts ${c.earned&&c.kind==='score'?'y':''}">${pts}</span></div><div class="bk-desc">${esc(c.desc)}</div>`;
+  };
+  const tile=(k,v,color)=>`<div class="tile"><div class="k">${k}</div><div class="v"${color?` style="color:${color}"`:''}>${v}</div></div>`;
+  const gex=x.has_gex?`<div class="c-sec"><div class="c-lbl">Dealer positioning — our engine</div></div>${ladder(x)}<div class="tiles">
+      ${tile('Regime',(x.regime==='positive'?'+':'−')+'gamma',x.regime==='positive'?'var(--up)':'var(--down)')}
+      ${tile('Gamma flip',f(x.gamma_flip,x.gamma_flip>1000?0:2))}${tile('vs flip',(x.dist_to_flip>0?'+':'')+f(x.dist_to_flip,1)+'%')}
+      ${tile('Call wall',f(x.call_wall))}${tile('Put wall',f(x.put_wall))}${tile('Pin (abs γ)',f(x.abs_gamma))}
+      ${tile('Max pain',f(x.max_pain))}${tile('γ ratio',f(x.gamma_ratio,2))}${tile('Spot',f(x.spot,x.spot>1000?0:2))}</div>`:'';
+  const sg=x.sector_grade;
+  const sec=sg?`<div class="c-sec"><div class="c-lbl">Sector — ${esc(sg.etf)} ${SECN[sg.etf]||''}</div></div><div class="tiles">
+      ${tile('Sector grade',sg.grade||'—')}${tile('Sector γ',sg.regime||'—',sg.regime==='positive'?'var(--up)':sg.regime?'var(--down)':null)}${tile('vs its 200d',(sg.dist_200>0?'+':'')+f(sg.dist_200,1)+'%')}</div>`:'';
+  $("#card").innerHTML=`
+    <div class="c-hd"><div><div class="c-tk">${esc(x.ticker)}</div><div class="c-nm">${esc(x.name||'')}</div></div>
+      <div style="display:flex;align-items:flex-start"><div class="c-spot"><b>${f(x.spot,x.spot>1000?0:2)}</b><div>spot</div><div style="margin-top:5px">${f(x.points_earned)}/${f(x.points_possible)} pts · ${f(x.score_pct)}%</div></div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:4px"><div class="c-gr ${gcls(x.grade)}">${x.grade}</div><div style="font-family:'IBM Plex Mono';font-size:10px;font-weight:600;color:${x.fire_bias==='long'?'var(--up)':x.fire_bias==='short'?'var(--down)':'var(--muted)'}">${(x.fire_bias||'').toUpperCase()}</div></div></div></div>
+    ${killed?`<div class="c-kill"><b>Vetoed:</b> ${x.kills.map(k=>esc(k.label)+' ('+esc(k.value)+')').join(' · ')} — grade capped at D. The chart may look fine; the veto is the point.</div>`:''}
+    <div class="c-sec"><div class="c-lbl">Technical — squeeze &amp; trend</div></div><div class="bk">${fam.technical.map(bkRow).join('')}</div>
+    ${fam.positioning.length?`<div class="c-sec"><div class="c-lbl">Positioning — scored</div></div><div class="bk">${fam.positioning.map(bkRow).join('')}</div>`:''}
+    ${fam.sector.length?`<div class="c-sec"><div class="c-lbl">Sector — scored</div></div><div class="bk">${fam.sector.map(bkRow).join('')}</div>`:''}
+    ${gex}${sec}
+    <div class="c-foot"><a class="btn prim" href="https://www.tradingview.com/chart/?symbol=${encodeURIComponent(x.ticker)}" target="_blank" rel="noopener">Open chart ↗</a><span class="btn" onclick="closeCard()">Close</span></div>`;
+  $("#overlay").style.display='flex';
+}
+function closeCard(){ $("#overlay").style.display='none'; }
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeCard();$("#drawer").classList.remove('open');}});
+document.querySelectorAll('.tg').forEach(t=>t.addEventListener('click',()=>{t.classList.toggle('on');state[t.dataset.f]=t.classList.contains('on');render();}));
+$("#q").addEventListener('input',e=>{state.q=e.target.value.trim();render();});
+$("#sector").addEventListener('change',e=>{state.sector=e.target.value;render();});
+$("#sort").addEventListener('change',e=>{state.sort=e.target.value;render();});
+$("#rubbtn").addEventListener('click',()=>$("#drawer").classList.toggle('open'));
+document.querySelectorAll('#vtg span').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('#vtg span').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); state.view=b.dataset.v; render();
+}));
+load();
+</script>
+</body>
+</html>
