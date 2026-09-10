@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Squeeze Scanner &mdash; Notes &middot; Change Log &amp; Dev Ideas</title>
+<style>
+  :root{
+    --bg:#0A141D; --panel:#0F1D29; --panel2:#122334; --line:#1E3549;
+    --text:#E7EEF5; --muted:#8AA0B4; --muted2:#5E7488;
+    --coil:#E8B54A; --up:#2FC08A; --down:#E4604E; --pos:#4A9BE8; --sec:#B07CE8;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+    font-family:"Inter",system-ui,-apple-system,sans-serif;padding:34px 26px 70px}
+  h1{font-family:"Barlow Condensed","Inter",sans-serif;font-weight:700;font-size:40px;
+    text-transform:uppercase;letter-spacing:.02em;margin:0 0 4px;line-height:.95}
+  .sub{color:var(--muted);font-size:13.5px;max-width:820px;line-height:1.5}
+  .sub b{color:var(--text);font-weight:600}
+  .src{color:var(--muted2);font-size:11px;margin-top:8px;font-family:"IBM Plex Mono",monospace}
+  .grp{margin-top:30px;max-width:900px}
+  .grp>h2{font-family:"Barlow Condensed","Inter",sans-serif;font-weight:700;font-size:16px;
+    letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 14px;
+    border-bottom:1px solid var(--line);padding-bottom:6px}
+  .log{display:flex;flex-direction:column;gap:0}
+  .entry{position:relative;padding:0 0 4px 20px;border-left:2px solid var(--line);margin-left:6px}
+  .entry:before{content:"";position:absolute;left:-7px;top:4px;width:11px;height:11px;
+    border-radius:50%;background:var(--up);border:2px solid var(--bg)}
+  .entry .date{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--up);letter-spacing:.04em}
+  .entry .body{color:var(--muted);font-size:13px;line-height:1.5;margin:4px 0 18px;max-width:760px}
+  .entry .body b{color:var(--text)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:15px 17px}
+  .card .ctitle{font-family:"Barlow Condensed","Inter",sans-serif;font-weight:700;font-size:19px;line-height:1.1;
+    display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .card .cdesc{color:var(--muted);font-size:12.5px;line-height:1.5;margin-top:8px}
+  .card .cdesc b{color:var(--text)}
+  .status{display:inline-block;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;
+    padding:2px 8px;border-radius:5px;font-weight:600}
+  .status.parked{color:var(--coil);background:rgba(232,181,74,.12)}
+  .status.spec{color:var(--pos);background:rgba(74,155,232,.12)}
+  .status.unbuilt{color:var(--muted2);background:rgba(94,116,136,.14)}
+  .gate{border:1.5px solid var(--down);background:rgba(228,96,78,.09);border-radius:12px;
+    padding:16px 20px;max-width:860px;margin:0 0 22px}
+  .gate .gt{font-family:"Barlow Condensed","Inter",sans-serif;font-weight:700;font-size:17px;
+    letter-spacing:.04em;text-transform:uppercase;color:var(--down);margin:0 0 7px;display:flex;align-items:center;gap:8px}
+  .gate p{color:var(--text);font-size:13.5px;line-height:1.55;margin:0}
+  .gate b{color:var(--down)}
+  .spec{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:18px 22px;max-width:900px}
+  .spec p{color:var(--muted);font-size:13.5px;line-height:1.6;margin:0 0 13px}
+  .spec p:last-child{margin-bottom:0}
+  .spec p b{color:var(--text)}
+  .spec .lead{color:var(--text);font-size:14px}
+  .spec h3{font-family:"IBM Plex Mono",monospace;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--muted2);margin:20px 0 8px;font-weight:500}
+  .spec .ref{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--pos)}
+  .foot{margin-top:32px;color:var(--muted);font-size:12.5px;line-height:1.55;border-top:1px solid var(--line);padding-top:16px;max-width:860px}
+  .foot b{color:var(--text)}
+</style>
+</head>
+<body>
+  <a href="index.html" style="display:inline-block;margin:0 0 14px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--coil);text-decoration:none">&larr; Scanner</a>
+  <h1>Squeeze Scanner &mdash; Notes &middot; Change Log &amp; Dev Ideas</h1>
+  <div class="sub">The landing pad for everything we discuss about this scanner &mdash; what changed, what's parked, and the specs we're sitting on. Nothing here is a build order. <b>Ideas live here until Bobby says build.</b></div>
+  <div class="src">companion to scanner.html &middot; alongside the Rubric and the Logic Map</div>
+
+  <div class="grp">
+    <h2>Change Log</h2>
+    <div class="log">
+      <div class="entry">
+        <div class="date">2026-09-10</div>
+        <div class="body"><b>V2 scanner deployed standalone</b> &mdash; its own repo and its own Vercel project, split out from the main app. The <b>Rubric</b> and <b>Logic Map</b> companions are linked from the scanner. A <b>data-integrity medallion banner</b> was added: the scanner reads a <b>SURFACE</b>-tier surface (pre-T0, uncertified) that feeds off <b>bars-daily</b> and <b>gex-compute</b> at <b>T1 Bronze</b>, with the banner grade set by the <b>min-of-feeds</b> rule &mdash; the surface is never rated higher than its weakest input.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grp">
+    <h2>Dev Ideas / Parked</h2>
+    <div class="cards">
+
+      <div class="card">
+        <div class="ctitle">Voice bot <span class="status spec">spec below</span></div>
+        <div class="cdesc">Talk to <b>Gene</b> (GEX/gamma) and <b>Bill</b> (TTM/squeeze) about any scanner name, in text and voice &mdash; the grade already <i>is</i> their read. Full preliminary spec is in the next section. <b>Do not build.</b></div>
+      </div>
+
+      <div class="card">
+        <div class="ctitle">Long / short split <span class="status spec">spec'd</span><span class="status unbuilt">unbuilt</span></div>
+        <div class="cdesc">Grade <b>A+ long</b> vs <b>A+ short</b> separately &mdash; dual scans, direction-aware. Today there is one direction-agnostic long-lens grade and <b>fire_bias</b> is only a tag. Spec'd, not built.</div>
+      </div>
+
+      <div class="card">
+        <div class="ctitle">Configurable rubric editor <span class="status unbuilt">unbuilt</span></div>
+        <div class="cdesc">The <b>scanner_conditions</b> points and thresholds are already tunable in SQL, but there's no UI editor over them. Was planned, not built.</div>
+      </div>
+
+      <div class="card">
+        <div class="ctitle">Medallion chip <span class="status parked">ok for now</span></div>
+        <div class="cdesc">An optional roll-up carat / simpler variant of the medallion banner. Bobby: <b>"ok for now."</b></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="grp">
+    <h2>Voice Bot &mdash; Preliminary Spec</h2>
+
+    <div class="gate">
+      <div class="gt">&#9940; Do Not Build</div>
+      <p>When we go to build this, we will talk about it in <b>much greater detail</b>. <b>DO NOT BUILD ANYTHING</b> until Bobby gives a firm, unquestionable, explicit <b>GO</b>. Do not casually start on it. Do not infer that a passing comment is approval. Work begins <b>ONLY</b> when Bobby clearly and directly says to build it.</p>
+    </div>
+
+    <div class="spec">
+      <p class="lead"><b>Gene + Bill as conversational experts in the scanner.</b> The grade already IS Gene's (GEX/gamma, Kochuba) + Bill's (TTM/squeeze, Carter) read of a name.</p>
+
+      <p><b>Vision:</b> talk to them &mdash; text and VOICE &mdash; about any scanner name ("why is NVDA an A? what's the gamma flip doing?").</p>
+
+      <h3>Components</h3>
+      <p>A <b>chat surface</b> (per-ticker and/or open); a <b>small AI backend</b> (Vercel function calling the Anthropic API with Gene/Bill personas + their corpora, streaming, needs an API key + per-message cost); <b>RAG grounding</b> (Gene = Kochuba GEX corpus, Bill = Carter squeeze corpus) fed the LIVE scanner row + feeds so they reason on real numbers; <b>tool use</b> (pull the row, GEX levels/walls, maybe a chart, accept a dropped file and answer on it); <b>voice tier</b> &mdash; browser Web Speech (quick) OR the proven voice-line cascade (Whisper STT &rarr; Claude &rarr; Kokoro TTS) for quality.</p>
+
+      <h3>Hard rules</h3>
+      <p>Never fabricate a level/price/grade; not financial advice; auth + cost budget.</p>
+
+      <h3>Open questions &mdash; decide together, later</h3>
+      <p>Per-ticker vs open chat; voice path; model + budget; real chart vs described levels; backend location; Gene/Bill separate vs merged; file-upload scope; session memory.</p>
+
+      <p><b>NOTHING is decided or started.</b> Full record: <span class="ref">launchpad.docs b044b400</span>.</p>
+    </div>
+  </div>
+
+  <div class="foot">
+    <b>House rule for this page:</b> it's a landing pad, not a backlog with authority. Anything here is a conversation we've had, held at rest. A spec sitting on this page is not permission to build it &mdash; that only ever comes from Bobby, explicitly, for that specific thing.
+  </div>
+</body>
+</html>
