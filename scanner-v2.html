@@ -277,13 +277,14 @@
 
 <div class="overlay" id="overlay" onclick="if(event.target===this)closeCard()"><div class="card" id="card"></div></div>
 
+<script src="tv-symbol.js"></script>
 <script>
 const SB="https://nsrlrhofvzstwbfkxoyk.supabase.co", KEY="sb_publishable_UYpFi4wR3sa87QU89Xx_Bg_gk5gw1Z9";
 const HDRS={apikey:KEY,authorization:"Bearer "+KEY,"content-type":"application/json"};
 const SECN={XLK:'Tech',XLV:'Health',XLF:'Fins',XLY:'Cons Disc',XLP:'Staples',XLE:'Energy',XLU:'Utes',XLB:'Materials',XLI:'Indus',XLRE:'REITs',XLC:'Comms',SMH:'Semis',KRE:'Banks'};
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const state={rows:[],conds:[],gexOnly:false,hideVetoed:false,squeezeOnly:true,sector:'',sort:'score',view:'cards',q:''};
+const state={rows:[],conds:[],exchMap:{},gexOnly:false,hideVetoed:false,squeezeOnly:true,sector:'',sort:'score',view:'cards',q:''};
 const gcls=g=>g==='A+'?'g-Ap':g==='A'?'g-A':g==='B'?'g-B':g==='C'?'g-C':g==='D'?'g-D':'g-F';
 const f=(n,d=0)=>n==null?'—':Number(n).toLocaleString(undefined,{maximumFractionDigits:d,minimumFractionDigits:d});
 
@@ -323,6 +324,8 @@ async function load(){
       if(page.length<1000) break;
     }
     state.conds=condsR.ok?await condsR.json():[];
+    try{ const exR=await fetch("ticker-exchange.json"); state.exchMap=exR.ok?await exR.json():{}; }
+    catch(e){ state.exchMap={}; }
     const secs=[...new Set(state.rows.map(x=>x.sector_etf).filter(Boolean))].sort();
     $("#sector").innerHTML='<option value="">All sectors</option>'+secs.map(s=>`<option value="${s}">${SECN[s]||s}</option>`).join('');
     const sq=state.rows.filter(x=>x.in_squeeze);
@@ -504,7 +507,7 @@ function openCard(tk){
     ${fam.positioning.length?`<div class="c-sec"><div class="c-lbl">Positioning — scored</div></div><div class="bk">${fam.positioning.map(bkRow).join('')}</div>`:''}
     ${fam.sector.length?`<div class="c-sec"><div class="c-lbl">Sector — scored</div></div><div class="bk">${fam.sector.map(bkRow).join('')}</div>`:''}
     ${gex}${sec}
-    <div class="c-foot"><a class="btn prim" href="https://www.tradingview.com/chart/?symbol=${encodeURIComponent(x.ticker)}" target="_blank" rel="noopener">Open chart ↗</a><span class="btn" onclick="closeCard()">Close</span></div>`;
+    <div class="c-foot"><a class="btn prim" href="https://www.tradingview.com/chart/?symbol=${encodeURIComponent(tvSymbol(x.ticker,state.exchMap))}" target="_blank" rel="noopener">Open chart ↗</a><span class="btn" onclick="closeCard()">Close</span></div>`;
   $("#overlay").style.display='flex';
 }
 function closeCard(){ $("#overlay").style.display='none'; }
